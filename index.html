@@ -303,7 +303,8 @@
                 gap: 15px;
             }
             .stats { 
-                flex-direction: column; 
+                display: grid;
+                grid-template-columns: 1fr 1fr;
                 gap: 10px;
             }
             .type-collections {
@@ -337,6 +338,7 @@
         
         <div class="stats">
             <div class="stat">📊 答對 <span id="correctCount">0</span> 題</div>
+            <div class="stat">📝 進度 <span id="progressCount">0</span>/81</div>
             <div class="stat">🎯 寶可夢 <span id="pokemonCount">0</span> 隻</div>
             <div class="stat">⭐ 星星 <span id="starCount">0</span> 顆</div>
         </div>
@@ -374,6 +376,10 @@
         };
         
         let currentQuestion = {};
+        
+        // 均勻題目池 - 確保每個題目都練習到
+        let questionPool = [];
+        let usedQuestions = [];
         
         // 寶可夢資料 - 每種屬性20隻，收集任意5隻獲得星星
         const pokemonTypes = {
@@ -512,8 +518,33 @@
             }
         }
         
+        // 初始化題目池
+        function initQuestionPool() {
+            questionPool = [];
+            for (let i = 1; i <= 9; i++) {
+                for (let j = 1; j <= 9; j++) {
+                    questionPool.push({
+                        num1: i,
+                        num2: j,
+                        answer: i * j
+                    });
+                }
+            }
+            // 打亂題目順序
+            shuffleArray(questionPool);
+        }
+        
+        // 打亂陣列順序
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+        
         // 初始化遊戲
         function initGame() {
+            initQuestionPool();
             generateQuestion();
             updateStats();
             renderCollection();
@@ -525,18 +556,27 @@
             });
         }
         
-        // 生成問題
+        // 生成問題 - 均勻模式
         function generateQuestion() {
-            const num1 = Math.floor(Math.random() * 9) + 1;
-            const num2 = Math.floor(Math.random() * 9) + 1;
+            // 如果題目池用完了，重新初始化
+            if (questionPool.length === 0) {
+                initQuestionPool();
+                usedQuestions = [];
+                showMessage('🎉 恭喜！完成一輪99乘法表練習！開始新一輪！', 'correct');
+                setTimeout(() => {
+                    document.getElementById('message').style.display = 'none';
+                }, 3000);
+            }
             
-            currentQuestion = {
-                num1,
-                num2,
-                answer: num1 * num2
-            };
+            // 從題目池中取出一個題目
+            const questionIndex = Math.floor(Math.random() * questionPool.length);
+            currentQuestion = questionPool[questionIndex];
             
-            document.getElementById('questionText').textContent = `${num1} × ${num2} = ?`;
+            // 將題目從池中移除，加入已用題目
+            questionPool.splice(questionIndex, 1);
+            usedQuestions.push(currentQuestion);
+            
+            document.getElementById('questionText').textContent = `${currentQuestion.num1} × ${currentQuestion.num2} = ?`;
             document.getElementById('answerInput').value = '';
             document.getElementById('answerInput').focus();
         }
@@ -635,6 +675,7 @@
         // 更新統計
         function updateStats() {
             document.getElementById('correctCount').textContent = stats.correct;
+            document.getElementById('progressCount').textContent = usedQuestions.length;
             document.getElementById('pokemonCount').textContent = stats.pokemon;
             document.getElementById('starCount').textContent = stats.stars;
         }
