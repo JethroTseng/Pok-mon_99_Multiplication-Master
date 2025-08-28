@@ -481,6 +481,9 @@
         let questionPool = [];
         let usedQuestions = [];
         
+        // 神話種冷卻機制
+        let lastLegendaryCount = -1;
+        
         // 寶可夢資料 - 每種屬性20隻，收集任意5隻獲得星星
         const pokemonTypes = {
             fire: {
@@ -745,13 +748,19 @@
         function rewardPokemon() {
             let randomType;
             
-            // 神話種獲得條件：答對3題且有25%機率，或答對10題且有40%機率，或答對25題且有60%機率
-            const canGetLegendary = (stats.correct >= 3 && Math.random() < 0.25) || 
-                                   (stats.correct >= 10 && Math.random() < 0.40) ||
-                                   (stats.correct >= 25 && Math.random() < 0.60);
+            // 神話種獲得條件：機率降低+冷卻機制
+            const sinceLast = stats.correct - lastLegendaryCount;
+            const cooldownPassed = lastLegendaryCount === -1 || sinceLast >= 3; // 至少間隔3題
             
-            if (canGetLegendary && collection.legendary.length < 5) {
+            const canGetLegendary = cooldownPassed && collection.legendary.length < 5 && (
+                (stats.correct >= 5 && Math.random() < 0.10) ||   // 5題後10%機率
+                (stats.correct >= 15 && Math.random() < 0.20) ||  // 15題後20%機率
+                (stats.correct >= 30 && Math.random() < 0.30)     // 30題後30%機率
+            );
+            
+            if (canGetLegendary) {
                 randomType = 'legendary';
+                lastLegendaryCount = stats.correct; // 記錄獲得神話種的題數
             } else {
                 // 普通類型隨機選擇
                 const normalTypes = ['fire', 'water', 'grass', 'electric'];
