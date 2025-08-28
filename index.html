@@ -149,6 +149,7 @@
         
         .pokemon-reward {
             width: 100%;
+            position: relative;
         }
         
         .pokemon-card {
@@ -165,6 +166,45 @@
         .pokemon-card.show {
             transform: scale(1);
             animation: bounceIn 0.8s ease;
+        }
+        
+        .pokemon-card.legendary {
+            background: linear-gradient(45deg, #fff, #f8f4ff, #fff);
+            border: 3px solid #9b59b6;
+            box-shadow: 0 0 30px rgba(155, 89, 182, 0.8);
+        }
+        
+        .pokemon-card.legendary.show {
+            transform: scale(1);
+            animation: legendaryBounceIn 1.2s ease;
+        }
+        
+        @keyframes legendaryBounceIn {
+            0% { 
+                transform: scale(0) rotate(0deg); 
+                opacity: 0;
+                box-shadow: 0 0 0 rgba(155, 89, 182, 0);
+            }
+            20% { 
+                transform: scale(0.3) rotate(10deg); 
+                opacity: 0.3;
+                box-shadow: 0 0 15px rgba(155, 89, 182, 0.5);
+            }
+            60% { 
+                transform: scale(1.2) rotate(-5deg); 
+                opacity: 0.8;
+                box-shadow: 0 0 40px rgba(155, 89, 182, 1);
+            }
+            80% { 
+                transform: scale(0.95) rotate(2deg); 
+                opacity: 1;
+                box-shadow: 0 0 35px rgba(155, 89, 182, 0.9);
+            }
+            100% { 
+                transform: scale(1) rotate(0deg); 
+                opacity: 1;
+                box-shadow: 0 0 30px rgba(155, 89, 182, 0.8);
+            }
         }
         
         @keyframes bounceIn {
@@ -294,6 +334,48 @@
         @keyframes twinkle {
             0% { transform: scale(1) rotate(0deg); }
             100% { transform: scale(1.1) rotate(10deg); }
+        }
+        
+        .legendary-stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .legendary-star {
+            position: absolute;
+            color: #ffd700;
+            font-size: 20px;
+            animation: sparkle 1.5s ease-in-out infinite;
+        }
+        
+        .legendary-star:nth-child(odd) {
+            animation-delay: 0.3s;
+            color: #ff69b4;
+        }
+        
+        .legendary-star:nth-child(3n) {
+            animation-delay: 0.6s;
+            color: #9b59b6;
+        }
+        
+        @keyframes sparkle {
+            0% { 
+                opacity: 0; 
+                transform: translateY(20px) scale(0) rotate(0deg); 
+            }
+            50% { 
+                opacity: 1; 
+                transform: translateY(-10px) scale(1.2) rotate(180deg); 
+            }
+            100% { 
+                opacity: 0; 
+                transform: translateY(-40px) scale(0) rotate(360deg); 
+            }
         }
         
         @media (max-width: 768px) {
@@ -663,9 +745,10 @@
         function rewardPokemon() {
             let randomType;
             
-            // 神話種獲得條件：答對10題且有5%機率，或答對50題且有15%機率
-            const canGetLegendary = (stats.correct >= 10 && Math.random() < 0.05) || 
-                                   (stats.correct >= 50 && Math.random() < 0.15);
+            // 神話種獲得條件：答對3題且有25%機率，或答對10題且有40%機率，或答對25題且有60%機率
+            const canGetLegendary = (stats.correct >= 3 && Math.random() < 0.25) || 
+                                   (stats.correct >= 10 && Math.random() < 0.40) ||
+                                   (stats.correct >= 25 && Math.random() < 0.60);
             
             if (canGetLegendary && collection.legendary.length < 5) {
                 randomType = 'legendary';
@@ -708,16 +791,37 @@
         function showPokemon(pokemon, type) {
             const rewardEl = document.getElementById('pokemonReward');
             const typeData = pokemonTypes[type];
+            const isLegendary = type === 'legendary';
+            
+            // 如果是神話種，先顯示特殊訊息
+            if (isLegendary) {
+                showMessage('🌟 傳說降臨！獲得神話種寶可夢！', 'correct');
+            }
+            
+            const legendaryClass = isLegendary ? 'legendary' : '';
+            const starsHtml = isLegendary ? `
+                <div class="legendary-stars">
+                    <div class="legendary-star" style="top: 10%; left: 20%;">✨</div>
+                    <div class="legendary-star" style="top: 15%; right: 25%;">⭐</div>
+                    <div class="legendary-star" style="top: 30%; left: 10%;">🌟</div>
+                    <div class="legendary-star" style="top: 35%; right: 15%;">✨</div>
+                    <div class="legendary-star" style="top: 50%; left: 30%;">⭐</div>
+                    <div class="legendary-star" style="top: 55%; right: 30%;">🌟</div>
+                    <div class="legendary-star" style="top: 70%; left: 15%;">✨</div>
+                    <div class="legendary-star" style="top: 75%; right: 20%;">⭐</div>
+                </div>
+            ` : '';
             
             rewardEl.innerHTML = `
-                <div class="pokemon-card" id="newPokemon">
+                <div class="pokemon-card ${legendaryClass}" id="newPokemon">
+                    ${starsHtml}
                     <img src="${getPokemonImageURL(pokemon.id)}" 
                          alt="${pokemon.nameCH}" 
                          class="pokemon-image" 
                          onerror="handleImageError(this, ${pokemon.id})">
                     <div class="pokemon-name">${pokemon.nameCH}</div>
                     <div class="pokemon-type" style="background-color: ${typeData.color}">
-                        ${typeData.name}
+                        ${isLegendary ? '🌟 ' : ''}${typeData.name}
                     </div>
                 </div>
             `;
@@ -727,9 +831,11 @@
                 if (card) card.classList.add('show');
             }, 100);
             
+            // 神話種顯示更長時間
+            const displayTime = isLegendary ? 5000 : 3500;
             setTimeout(() => {
                 rewardEl.innerHTML = '';
-            }, 3500);
+            }, displayTime);
         }
         
         // 更新統計
