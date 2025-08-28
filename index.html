@@ -229,6 +229,24 @@
             box-shadow: 0 0 15px rgba(243, 156, 18, 0.5);
         }
         
+        .type-collection.legendary {
+            background: linear-gradient(45deg, #a29bfe, #6c5ce7);
+            border-color: #9b59b6;
+            color: white;
+        }
+        
+        .type-collection.legendary.complete {
+            background: linear-gradient(45deg, #fd79a8, #fdcb6e, #a29bfe);
+            border-color: #e84393;
+            box-shadow: 0 0 25px rgba(232, 67, 147, 0.8);
+            animation: legendaryGlow 2s infinite alternate;
+        }
+        
+        @keyframes legendaryGlow {
+            0% { box-shadow: 0 0 25px rgba(232, 67, 147, 0.8); }
+            100% { box-shadow: 0 0 35px rgba(155, 89, 182, 1); }
+        }
+        
         .type-header {
             font-weight: bold;
             font-size: 0.9rem;
@@ -361,7 +379,7 @@
         </div>
         
         <div class="collection">
-            <h3 class="collection-title">📚 寶可夢收集冊 - 每系列收集5隻獲得星星</h3>
+            <h3 class="collection-title">📚 寶可夢收集冊 - 每系列收集5隻獲得星星 | 🌟 神話種稀有出現</h3>
             <div class="type-collections" id="typeCollections"></div>
             <div class="stars" id="starsDisplay"></div>
         </div>
@@ -486,6 +504,32 @@
                     {id: 312, name: 'minun', nameCH: '負電拍拍'},
                     {id: 466, name: 'electivire', nameCH: '電擊魔獸'}
                 ]
+            },
+            legendary: {
+                name: '神話種',
+                color: '#9b59b6',
+                pokemon: [
+                    {id: 144, name: 'articuno', nameCH: '急凍鳥'},
+                    {id: 145, name: 'zapdos', nameCH: '閃電鳥'},
+                    {id: 146, name: 'moltres', nameCH: '火焰鳥'},
+                    {id: 150, name: 'mewtwo', nameCH: '超夢'},
+                    {id: 151, name: 'mew', nameCH: '夢幻'},
+                    {id: 243, name: 'raikou', nameCH: '雷公'},
+                    {id: 244, name: 'entei', nameCH: '炎帝'},
+                    {id: 245, name: 'suicune', nameCH: '水君'},
+                    {id: 249, name: 'lugia', nameCH: '洛奇亞'},
+                    {id: 250, name: 'ho-oh', nameCH: '鳳王'},
+                    {id: 251, name: 'celebi', nameCH: '時拉比'},
+                    {id: 380, name: 'latias', nameCH: '拉帝亞斯'},
+                    {id: 381, name: 'latios', nameCH: '拉帝歐斯'},
+                    {id: 382, name: 'kyogre', nameCH: '蓋歐卡'},
+                    {id: 383, name: 'groudon', nameCH: '固拉多'},
+                    {id: 384, name: 'rayquaza', nameCH: '烈空坐'},
+                    {id: 385, name: 'jirachi', nameCH: '基拉祈'},
+                    {id: 386, name: 'deoxys', nameCH: '代歐奇希斯'},
+                    {id: 483, name: 'dialga', nameCH: '帝牙盧卡'},
+                    {id: 484, name: 'palkia', nameCH: '帕路奇亞'}
+                ]
             }
         };
         
@@ -494,7 +538,8 @@
             fire: [],
             water: [], 
             grass: [],
-            electric: []
+            electric: [],
+            legendary: []
         };
         
         // 獲取寶可夢圖片URL - 使用多重備案
@@ -616,8 +661,20 @@
         
         // 獎勵寶可夢
         function rewardPokemon() {
-            const typeKeys = Object.keys(pokemonTypes);
-            const randomType = typeKeys[Math.floor(Math.random() * typeKeys.length)];
+            let randomType;
+            
+            // 神話種獲得條件：答對10題且有5%機率，或答對50題且有15%機率
+            const canGetLegendary = (stats.correct >= 10 && Math.random() < 0.05) || 
+                                   (stats.correct >= 50 && Math.random() < 0.15);
+            
+            if (canGetLegendary && collection.legendary.length < 5) {
+                randomType = 'legendary';
+            } else {
+                // 普通類型隨機選擇
+                const normalTypes = ['fire', 'water', 'grass', 'electric'];
+                randomType = normalTypes[Math.floor(Math.random() * normalTypes.length)];
+            }
+            
             const typeData = pokemonTypes[randomType];
             
             // 找到該屬性還沒收集的寶可夢
@@ -636,7 +693,10 @@
                 if (collection[randomType].length === 5) {
                     stats.stars++;
                     setTimeout(() => {
-                        showMessage(`⭐ 恭喜！完成${typeData.name}收集！獲得一顆星星！`, 'correct');
+                        const starMessage = randomType === 'legendary' ? 
+                            `🌟 傳說！完成神話種收集！獲得傳說之星！` : 
+                            `⭐ 恭喜！完成${typeData.name}收集！獲得一顆星星！`;
+                        showMessage(starMessage, 'correct');
                     }, 1500);
                 }
                 
@@ -689,11 +749,12 @@
                 const typeData = pokemonTypes[typeKey];
                 const collected = collection[typeKey];
                 const isComplete = collected.length >= 5;
+                const isLegendary = typeKey === 'legendary';
                 
                 const div = document.createElement('div');
-                div.className = `type-collection ${isComplete ? 'complete' : ''}`;
+                div.className = `type-collection ${isComplete ? 'complete' : ''} ${isLegendary ? 'legendary' : ''}`;
                 
-                // 顯示所有20隻寶可夢，已收集的不灰化
+                // 顯示所有寶可夢，已收集的不灰化
                 const pokemonHtml = typeData.pokemon.map(pokemon => {
                     const isCollected = collected.some(c => c.id === pokemon.id);
                     const paddedId = String(pokemon.id).padStart(3, '0');
@@ -704,12 +765,16 @@
                                  onerror="handleImageError(this, ${pokemon.id})">`;
                 }).join('');
                 
+                const completeText = isComplete ? 
+                    (isLegendary ? '<div style="margin-top: 8px; font-size: 1rem; font-weight: bold;">🌟 傳說完成！</div>' : 
+                                  '<div style="margin-top: 8px; font-size: 1rem; font-weight: bold;">⭐ 完成！</div>') : '';
+                
                 div.innerHTML = `
-                    <div class="type-header" style="color: ${typeData.color}">
+                    <div class="type-header" style="color: ${isLegendary ? 'white' : typeData.color}">
                         ${typeData.name} (${collected.length}/5)
                     </div>
                     <div class="pokemon-grid">${pokemonHtml}</div>
-                    ${isComplete ? '<div style="margin-top: 8px; font-size: 1rem; font-weight: bold;">⭐ 完成！</div>' : ''}
+                    ${completeText}
                 `;
                 
                 container.appendChild(div);
