@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寶可夢99乘法表遊戲</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px;
+        }
+        
+        .game-container {
+            background: white;
+            border-radius: 25px;
+            padding: 25px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .title {
+            color: #2d3436;
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .stat {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+        }
+        
+        .main-area {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 25px;
+            align-items: flex-start;
+        }
+        
+        .left-section {
+            flex: 1;
+        }
+        
+        .right-section {
+            flex: 0 0 320px;
+            min-height: 350px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .question-box {
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+            padding: 40px 30px;
+            border-radius: 25px;
+            border: 4px solid #667eea;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+        }
+        
+        .question-text {
+            font-size: 3.5rem;
+            color: #2d3436;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+        
+        .input-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .answer-input {
+            font-size: 2.2rem;
+            padding: 20px 25px;
+            border: 4px solid #ddd;
+            border-radius: 15px;
+            width: 200px;
+            text-align: center;
+            font-weight: bold;
+            background: white;
+        }
+        
+        .answer-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .submit-btn {
+            background: linear-gradient(45deg, #00b894, #00cec9);
+            color: white;
+            border: none;
+            padding: 20px 30px;
+            font-size: 1.6rem;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 8px 20px rgba(0, 184, 148, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-3px);
+        }
+        
+        .message {
+            font-size: 1.4rem;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 15px;
+            font-weight: bold;
+            display: none;
+        }
+        
+        .message.correct {
+            background: linear-gradient(45deg, #00b894, #00cec9);
+            color: white;
+        }
+        
+        .message.incorrect {
+            background: linear-gradient(45deg, #ff7675, #fd79a8);
+            color: white;
+        }
+        
+        .pokemon-reward {
+            width: 100%;
+        }
+        
+        .pokemon-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            transform: scale(0);
+            transition: transform 0.6s ease;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .pokemon-card.show {
+            transform: scale(1);
+            animation: bounceIn 0.8s ease;
+        }
+        
+        @keyframes bounceIn {
+            0%, 20%, 60%, 100% { transform: scale(1); }
+            40% { transform: scale(1.15); }
+            80% { transform: scale(1.05); }
+        }
+        
+        .pokemon-image {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 10px;
+            image-rendering: pixelated;
+        }
+        
+        .pokemon-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2d3436;
+            margin-bottom: 8px;
+        }
+        
+        .pokemon-type {
+            padding: 8px 15px;
+            border-radius: 15px;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .collection {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 20px;
+            border: 2px solid #ddd;
+        }
+        
+        .collection-title {
+            font-size: 1.4rem;
+            color: #2d3436;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        .type-collections {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        
+        .type-collection {
+            background: white;
+            border-radius: 12px;
+            padding: 8px;
+            border: 2px solid #ddd;
+            transition: all 0.3s ease;
+        }
+        
+        .type-collection.complete {
+            background: linear-gradient(45deg, #ffeaa7, #fdcb6e);
+            border-color: #f39c12;
+            box-shadow: 0 0 15px rgba(243, 156, 18, 0.5);
+        }
+        
+        .type-header {
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        
+        .pokemon-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 2px;
+            justify-items: center;
+        }
+        
+        .pokemon-mini {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            image-rendering: pixelated;
+            filter: grayscale(100%) brightness(0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .pokemon-mini.collected {
+            filter: none;
+            animation: pulse 0.5s ease;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .stars {
+            font-size: 1.8rem;
+            margin-top: 15px;
+        }
+        
+        .star {
+            color: #f39c12;
+            margin: 0 3px;
+            animation: twinkle 1.5s infinite alternate;
+        }
+        
+        @keyframes twinkle {
+            0% { transform: scale(1) rotate(0deg); }
+            100% { transform: scale(1.1) rotate(10deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .title { font-size: 1.8rem; }
+            .main-area {
+                flex-direction: column;
+                gap: 20px;
+            }
+            .right-section {
+                flex: none;
+                min-height: auto;
+            }
+            .question-box { padding: 30px 20px; }
+            .question-text { font-size: 2.5rem; }
+            .answer-input { 
+                width: 160px; 
+                font-size: 1.8rem; 
+            }
+            .submit-btn {
+                font-size: 1.4rem;
+                padding: 18px 25px;
+            }
+            .input-area { 
+                flex-direction: column; 
+                gap: 15px;
+            }
+            .stats { 
+                flex-direction: column; 
+                gap: 10px;
+            }
+            .type-collections {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .question-text { font-size: 2rem; }
+            .answer-input { 
+                width: 140px; 
+                font-size: 1.6rem; 
+            }
+            .submit-btn { font-size: 1.2rem; }
+            .type-collections { 
+                grid-template-columns: 1fr; 
+            }
+            .pokemon-grid {
+                grid-template-columns: repeat(10, 1fr);
+            }
+            .pokemon-mini {
+                width: 16px;
+                height: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="title">🎮 寶可夢乘法大師</h1>
+        
+        <div class="stats">
+            <div class="stat">📊 答對 <span id="correctCount">0</span> 題</div>
+            <div class="stat">🎯 寶可夢 <span id="pokemonCount">0</span> 隻</div>
+            <div class="stat">⭐ 星星 <span id="starCount">0</span> 顆</div>
+        </div>
+        
+        <div class="main-area">
+            <div class="left-section">
+                <div class="question-box">
+                    <div class="question-text" id="questionText">2 × 3 = ?</div>
+                    <div class="input-area">
+                        <input type="number" id="answerInput" class="answer-input" placeholder="?">
+                        <button onclick="checkAnswer()" class="submit-btn">確認</button>
+                    </div>
+                </div>
+                <div id="message" class="message"></div>
+            </div>
+            
+            <div class="right-section">
+                <div class="pokemon-reward" id="pokemonReward"></div>
+            </div>
+        </div>
+        
+        <div class="collection">
+            <h3 class="collection-title">📚 寶可夢收集冊 - 每系列收集5隻獲得星星</h3>
+            <div class="type-collections" id="typeCollections"></div>
+            <div class="stars" id="starsDisplay"></div>
+        </div>
+    </div>
+
+    <script>
+        // 遊戲狀態
+        let stats = {
+            correct: 0,
+            pokemon: 0,
+            stars: 0
+        };
+        
+        let currentQuestion = {};
+        
+        // 寶可夢資料 - 每種屬性20隻，收集任意5隻獲得星星
+        const pokemonTypes = {
+            fire: {
+                name: '火系',
+                color: '#ff6b6b',
+                pokemon: [
+                    {id: 4, name: 'charmander', nameCH: '小火龍'},
+                    {id: 5, name: 'charmeleon', nameCH: '火恐龍'},
+                    {id: 6, name: 'charizard', nameCH: '噴火龍'},
+                    {id: 37, name: 'vulpix', nameCH: '六尾'},
+                    {id: 38, name: 'ninetales', nameCH: '九尾'},
+                    {id: 58, name: 'growlithe', nameCH: '卡蒂狗'},
+                    {id: 59, name: 'arcanine', nameCH: '風速狗'},
+                    {id: 77, name: 'ponyta', nameCH: '小火馬'},
+                    {id: 78, name: 'rapidash', nameCH: '烈焰馬'},
+                    {id: 126, name: 'magmar', nameCH: '鴨嘴火獸'},
+                    {id: 136, name: 'flareon', nameCH: '火伊布'},
+                    {id: 146, name: 'moltres', nameCH: '火焰鳥'},
+                    {id: 155, name: 'cyndaquil', nameCH: '火球鼠'},
+                    {id: 156, name: 'quilava', nameCH: '火岩鼠'},
+                    {id: 157, name: 'typhlosion', nameCH: '火爆獸'},
+                    {id: 218, name: 'slugma', nameCH: '熔岩蟲'},
+                    {id: 219, name: 'magcargo', nameCH: '熔岩蝸牛'},
+                    {id: 240, name: 'magby', nameCH: '鴨嘴寶寶'},
+                    {id: 244, name: 'entei', nameCH: '炎帝'},
+                    {id: 250, name: 'ho-oh', nameCH: '鳳王'}
+                ]
+            },
+            water: {
+                name: '水系', 
+                color: '#74b9ff',
+                pokemon: [
+                    {id: 7, name: 'squirtle', nameCH: '傑尼龜'},
+                    {id: 8, name: 'wartortle', nameCH: '卡咪龜'},
+                    {id: 9, name: 'blastoise', nameCH: '水箭龜'},
+                    {id: 54, name: 'psyduck', nameCH: '可達鴨'},
+                    {id: 55, name: 'golduck', nameCH: '哥達鴨'},
+                    {id: 72, name: 'tentacool', nameCH: '瑪瑙水母'},
+                    {id: 73, name: 'tentacruel', nameCH: '毒刺水母'},
+                    {id: 79, name: 'slowpoke', nameCH: '呆呆獸'},
+                    {id: 80, name: 'slowbro', nameCH: '呆殼獸'},
+                    {id: 90, name: 'shellder', nameCH: '大舌貝'},
+                    {id: 91, name: 'cloyster', nameCH: '刺甲貝'},
+                    {id: 98, name: 'krabby', nameCH: '大鉗蟹'},
+                    {id: 99, name: 'kingler', nameCH: '巨鉗蟹'},
+                    {id: 116, name: 'horsea', nameCH: '墨海馬'},
+                    {id: 117, name: 'seadra', nameCH: '海刺龍'},
+                    {id: 118, name: 'goldeen', nameCH: '角金魚'},
+                    {id: 119, name: 'seaking', nameCH: '金魚王'},
+                    {id: 120, name: 'staryu', nameCH: '海星星'},
+                    {id: 121, name: 'starmie', nameCH: '寶石海星'},
+                    {id: 129, name: 'magikarp', nameCH: '鯉魚王'}
+                ]
+            },
+            grass: {
+                name: '草系',
+                color: '#55a3ff', 
+                pokemon: [
+                    {id: 1, name: 'bulbasaur', nameCH: '妙蛙種子'},
+                    {id: 2, name: 'ivysaur', nameCH: '妙蛙草'},
+                    {id: 3, name: 'venusaur', nameCH: '妙蛙花'},
+                    {id: 43, name: 'oddish', nameCH: '走路草'},
+                    {id: 44, name: 'gloom', nameCH: '臭臭花'},
+                    {id: 45, name: 'vileplume', nameCH: '霸王花'},
+                    {id: 46, name: 'paras', nameCH: '派拉斯'},
+                    {id: 47, name: 'parasect', nameCH: '派拉斯特'},
+                    {id: 69, name: 'bellsprout', nameCH: '喇叭芽'},
+                    {id: 70, name: 'weepinbell', nameCH: '口呆花'},
+                    {id: 71, name: 'victreebel', nameCH: '大食花'},
+                    {id: 102, name: 'exeggcute', nameCH: '蛋蛋'},
+                    {id: 103, name: 'exeggutor', nameCH: '椰蛋樹'},
+                    {id: 114, name: 'tangela', nameCH: '蔓藤怪'},
+                    {id: 152, name: 'chikorita', nameCH: '菊草葉'},
+                    {id: 153, name: 'bayleef', nameCH: '月桂葉'},
+                    {id: 154, name: 'meganium', nameCH: '大竺葵'},
+                    {id: 182, name: 'bellossom', nameCH: '美麗花'},
+                    {id: 187, name: 'hoppip', nameCH: '毽子草'},
+                    {id: 191, name: 'sunkern', nameCH: '向日種子'}
+                ]
+            },
+            electric: {
+                name: '電系',
+                color: '#feca57',
+                pokemon: [
+                    {id: 25, name: 'pikachu', nameCH: '皮卡丘'},
+                    {id: 26, name: 'raichu', nameCH: '雷丘'},
+                    {id: 81, name: 'magnemite', nameCH: '小磁怪'},
+                    {id: 82, name: 'magneton', nameCH: '三合一磁怪'},
+                    {id: 100, name: 'voltorb', nameCH: '雷電球'},
+                    {id: 101, name: 'electrode', nameCH: '頑皮雷彈'},
+                    {id: 125, name: 'electabuzz', nameCH: '電擊獸'},
+                    {id: 135, name: 'jolteon', nameCH: '雷伊布'},
+                    {id: 145, name: 'zapdos', nameCH: '閃電鳥'},
+                    {id: 172, name: 'pichu', nameCH: '皮丘'},
+                    {id: 179, name: 'mareep', nameCH: '咩利羊'},
+                    {id: 180, name: 'flaaffy', nameCH: '茸茸羊'},
+                    {id: 181, name: 'ampharos', nameCH: '電龍'},
+                    {id: 239, name: 'elekid', nameCH: '電擊怪'},
+                    {id: 243, name: 'raikou', nameCH: '雷公'},
+                    {id: 309, name: 'electrike', nameCH: '落雷獸'},
+                    {id: 310, name: 'manectric', nameCH: '雷電獸'},
+                    {id: 311, name: 'plusle', nameCH: '正電拍拍'},
+                    {id: 312, name: 'minun', nameCH: '負電拍拍'},
+                    {id: 466, name: 'electivire', nameCH: '電擊魔獸'}
+                ]
+            }
+        };
+        
+        // 收集進度
+        let collection = {
+            fire: [],
+            water: [], 
+            grass: [],
+            electric: []
+        };
+        
+        // 獲取寶可夢圖片URL - 使用多重備案
+        function getPokemonImageURL(id, isOfficial = true) {
+            const paddedId = String(id).padStart(3, '0');
+            if (isOfficial) {
+                return `https://raw.githubusercontent.com/HybridShivam/Pokemon/master/assets/images/${paddedId}.png`;
+            }
+            return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+        }
+        
+        // 處理圖片載入錯誤的函數
+        function handleImageError(img, id) {
+            if (img.src.includes('HybridShivam')) {
+                img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+            } else if (img.src.includes('sprites/pokemon')) {
+                img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${id}.png`;
+            } else {
+                img.style.display = 'none';
+                img.parentElement.innerHTML += '<div style="font-size: 1rem;">❓</div>';
+            }
+        }
+        
+        // 初始化遊戲
+        function initGame() {
+            generateQuestion();
+            updateStats();
+            renderCollection();
+            
+            document.getElementById('answerInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkAnswer();
+                }
+            });
+        }
+        
+        // 生成問題
+        function generateQuestion() {
+            const num1 = Math.floor(Math.random() * 9) + 1;
+            const num2 = Math.floor(Math.random() * 9) + 1;
+            
+            currentQuestion = {
+                num1,
+                num2,
+                answer: num1 * num2
+            };
+            
+            document.getElementById('questionText').textContent = `${num1} × ${num2} = ?`;
+            document.getElementById('answerInput').value = '';
+            document.getElementById('answerInput').focus();
+        }
+        
+        // 檢查答案
+        function checkAnswer() {
+            const userAnswer = parseInt(document.getElementById('answerInput').value);
+            
+            if (isNaN(userAnswer)) {
+                showMessage('請輸入數字！', 'incorrect');
+                return;
+            }
+            
+            if (userAnswer === currentQuestion.answer) {
+                stats.correct++;
+                showMessage('🎉 答對了！太棒了！', 'correct');
+                rewardPokemon();
+                setTimeout(generateQuestion, 2500);
+            } else {
+                showMessage(`❌ 答錯了！正確答案是 ${currentQuestion.answer}`, 'incorrect');
+                setTimeout(() => {
+                    document.getElementById('message').style.display = 'none';
+                }, 2000);
+            }
+            
+            updateStats();
+        }
+        
+        // 顯示訊息
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+            messageEl.style.display = 'block';
+        }
+        
+        // 獎勵寶可夢
+        function rewardPokemon() {
+            const typeKeys = Object.keys(pokemonTypes);
+            const randomType = typeKeys[Math.floor(Math.random() * typeKeys.length)];
+            const typeData = pokemonTypes[randomType];
+            
+            // 找到該屬性還沒收集的寶可夢
+            const availablePokemon = typeData.pokemon.filter(p => 
+                !collection[randomType].some(collected => collected.id === p.id)
+            );
+            
+            if (availablePokemon.length > 0) {
+                const pokemon = availablePokemon[Math.floor(Math.random() * availablePokemon.length)];
+                collection[randomType].push(pokemon);
+                stats.pokemon++;
+                
+                showPokemon(pokemon, randomType);
+                
+                // 檢查是否完成該屬性收集（收集到5隻即可）
+                if (collection[randomType].length === 5) {
+                    stats.stars++;
+                    setTimeout(() => {
+                        showMessage(`⭐ 恭喜！完成${typeData.name}收集！獲得一顆星星！`, 'correct');
+                    }, 1500);
+                }
+                
+                renderCollection();
+            }
+        }
+        
+        // 顯示獲得的寶可夢
+        function showPokemon(pokemon, type) {
+            const rewardEl = document.getElementById('pokemonReward');
+            const typeData = pokemonTypes[type];
+            
+            rewardEl.innerHTML = `
+                <div class="pokemon-card" id="newPokemon">
+                    <img src="${getPokemonImageURL(pokemon.id)}" 
+                         alt="${pokemon.nameCH}" 
+                         class="pokemon-image" 
+                         onerror="handleImageError(this, ${pokemon.id})">
+                    <div class="pokemon-name">${pokemon.nameCH}</div>
+                    <div class="pokemon-type" style="background-color: ${typeData.color}">
+                        ${typeData.name}
+                    </div>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                const card = document.getElementById('newPokemon');
+                if (card) card.classList.add('show');
+            }, 100);
+            
+            setTimeout(() => {
+                rewardEl.innerHTML = '';
+            }, 3500);
+        }
+        
+        // 更新統計
+        function updateStats() {
+            document.getElementById('correctCount').textContent = stats.correct;
+            document.getElementById('pokemonCount').textContent = stats.pokemon;
+            document.getElementById('starCount').textContent = stats.stars;
+        }
+        
+        // 渲染收集進度
+        function renderCollection() {
+            const container = document.getElementById('typeCollections');
+            container.innerHTML = '';
+            
+            Object.keys(pokemonTypes).forEach(typeKey => {
+                const typeData = pokemonTypes[typeKey];
+                const collected = collection[typeKey];
+                const isComplete = collected.length >= 5;
+                
+                const div = document.createElement('div');
+                div.className = `type-collection ${isComplete ? 'complete' : ''}`;
+                
+                // 顯示所有20隻寶可夢，已收集的不灰化
+                const pokemonHtml = typeData.pokemon.map(pokemon => {
+                    const isCollected = collected.some(c => c.id === pokemon.id);
+                    const paddedId = String(pokemon.id).padStart(3, '0');
+                    return `<img src="https://raw.githubusercontent.com/HybridShivam/Pokemon/master/assets/images/${paddedId}.png" 
+                                 alt="${pokemon.nameCH}" 
+                                 class="pokemon-mini ${isCollected ? 'collected' : ''}" 
+                                 title="${pokemon.nameCH}"
+                                 onerror="handleImageError(this, ${pokemon.id})">`;
+                }).join('');
+                
+                div.innerHTML = `
+                    <div class="type-header" style="color: ${typeData.color}">
+                        ${typeData.name} (${collected.length}/5)
+                    </div>
+                    <div class="pokemon-grid">${pokemonHtml}</div>
+                    ${isComplete ? '<div style="margin-top: 8px; font-size: 1rem; font-weight: bold;">⭐ 完成！</div>' : ''}
+                `;
+                
+                container.appendChild(div);
+            });
+            
+            // 渲染星星
+            const starsEl = document.getElementById('starsDisplay');
+            starsEl.innerHTML = Array(stats.stars).fill(0).map(() => '<span class="star">⭐</span>').join('');
+        }
+        
+        // 啟動遊戲
+        initGame();
+    </script>
+</body>
+</html>
