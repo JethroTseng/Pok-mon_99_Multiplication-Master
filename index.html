@@ -27,6 +27,31 @@
             width: 100%;
             margin: 0 auto;
             text-align: center;
+            position: relative;
+        }
+        
+        .language-switch {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+        }
+        
+        .lang-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+        }
+        
+        .lang-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
         
         .title {
@@ -433,14 +458,15 @@
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <h1 class="title">🎮 寶可夢乘法大師</h1>
-        
-        <div class="stats">
-            <div class="stat">📊 答對 <span id="correctCount">0</span> 題</div>
-            <div class="stat">📝 進度 <span id="progressCount">0</span>/81</div>
-            <div class="stat">🎯 寶可夢 <span id="pokemonCount">0</span> 隻</div>
-            <div class="stat">⭐ 星星 <span id="starCount">0</span> 顆</div>
+        <div class="game-container">
+            <div class="language-switch">
+                <button id="langBtn" onclick="toggleLanguage()" class="lang-btn">🌐 EN</button>
+            </div>
+            <h1 class="title" data-zh="🎮 寶可夢乘法大師" data-en="🎮 Pokémon Math Master">🎮 寶可夢乘法大師</h1>        <div class="stats">
+            <div class="stat"><span data-zh="📊 答對" data-en="📊 Correct">📊 答對</span> <span id="correctCount">0</span> <span data-zh="題" data-en="questions">題</span></div>
+            <div class="stat"><span data-zh="📝 進度" data-en="📝 Progress">📝 進度</span> <span id="progressCount">0</span>/81</div>
+            <div class="stat"><span data-zh="🎯 寶可夢" data-en="🎯 Pokémon">🎯 寶可夢</span> <span id="pokemonCount">0</span> <span data-zh="隻" data-en="caught">隻</span></div>
+            <div class="stat"><span data-zh="⭐ 星星" data-en="⭐ Stars">⭐ 星星</span> <span id="starCount">0</span> <span data-zh="顆" data-en="earned">顆</span></div>
         </div>
         
         <div class="main-area">
@@ -448,8 +474,8 @@
                 <div class="question-box">
                     <div class="question-text" id="questionText">2 × 3 = ?</div>
                     <div class="input-area">
-                        <input type="number" id="answerInput" class="answer-input" placeholder="?">
-                        <button onclick="checkAnswer()" class="submit-btn">確認</button>
+                        <input type="number" id="answerInput" class="answer-input" data-zh-placeholder="?" data-en-placeholder="?" placeholder="?">
+                        <button onclick="checkAnswer()" class="submit-btn" data-zh="確認" data-en="Submit">確認</button>
                     </div>
                 </div>
                 <div id="message" class="message"></div>
@@ -461,7 +487,7 @@
         </div>
         
         <div class="collection">
-            <h3 class="collection-title">📚 寶可夢收集冊 - 每收集5隻獲得1顆星星，可持續收集獲得更多星星！ | 🌟 神話種稀有出現</h3>
+            <h3 class="collection-title" data-zh="📚 寶可夢收集冊 - 每收集5隻獲得1顆星星，可持續收集獲得更多星星！ | 🌟 神話種稀有出現" data-en="📚 Pokémon Collection - Earn 1 star for every 5 caught, keep collecting for more stars! | 🌟 Legendary rare encounters">📚 寶可夢收集冊 - 每收集5隻獲得1顆星星，可持續收集獲得更多星星！ | 🌟 神話種稀有出現</h3>
             <div class="type-collections" id="typeCollections"></div>
             <div class="stars" id="starsDisplay"></div>
         </div>
@@ -484,136 +510,183 @@
         // 神話種冷卻機制
         let lastLegendaryCount = -1;
         
+        // 語言設定
+        let currentLanguage = 'en';
+        
+        // 翻譯資料
+        const translations = {
+            messages: {
+                zh: {
+                    inputNumber: '請輸入數字！',
+                    correct: '🎉 答對了！太棒了！',
+                    incorrect: '❌ 答錯了！正確答案是',
+                    roundComplete: '🎉 恭喜！完成一輪99乘法表練習！開始新一輪！',
+                    legendary: '🌟 傳說降臨！獲得神話種寶可夢！',
+                    starEarned: '⭐ 恭喜！完成{type}第{stage}階段收集！獲得一顆星星！',
+                    legendaryStarEarned: '🌟 傳說！完成神話種第{stage}階段收集！獲得傳說之星！',
+                    starsEarned: '⭐ 已獲得 {count} 顆星星',
+                    legendaryStarsEarned: '🌟 已獲得 {count} 顆星星'
+                },
+                en: {
+                    inputNumber: 'Please enter a number!',
+                    correct: '🎉 Correct! Excellent!',
+                    incorrect: '❌ Wrong! The correct answer is',
+                    roundComplete: '🎉 Congratulations! Completed one round of 99 multiplication tables! Starting new round!',
+                    legendary: '🌟 Legend appears! Got a legendary Pokémon!',
+                    starEarned: '⭐ Congratulations! Completed {type} stage {stage}! Earned a star!',
+                    legendaryStarEarned: '🌟 Legend! Completed Legendary stage {stage}! Earned a legendary star!',
+                    starsEarned: '⭐ Earned {count} stars',
+                    legendaryStarsEarned: '🌟 Earned {count} stars'
+                }
+            },
+            types: {
+                zh: {
+                    fire: '火系',
+                    water: '水系',
+                    grass: '草系',
+                    electric: '電系',
+                    legendary: '神話種'
+                },
+                en: {
+                    fire: 'Fire',
+                    water: 'Water', 
+                    grass: 'Grass',
+                    electric: 'Electric',
+                    legendary: 'Legendary'
+                }
+            }
+        };
+        
         // 寶可夢資料 - 每種屬性20隻，收集任意5隻獲得星星
         const pokemonTypes = {
             fire: {
                 name: '火系',
                 color: '#ff6b6b',
                 pokemon: [
-                    {id: 4, name: 'charmander', nameCH: '小火龍'},
-                    {id: 5, name: 'charmeleon', nameCH: '火恐龍'},
-                    {id: 6, name: 'charizard', nameCH: '噴火龍'},
-                    {id: 37, name: 'vulpix', nameCH: '六尾'},
-                    {id: 38, name: 'ninetales', nameCH: '九尾'},
-                    {id: 58, name: 'growlithe', nameCH: '卡蒂狗'},
-                    {id: 59, name: 'arcanine', nameCH: '風速狗'},
-                    {id: 77, name: 'ponyta', nameCH: '小火馬'},
-                    {id: 78, name: 'rapidash', nameCH: '烈焰馬'},
-                    {id: 126, name: 'magmar', nameCH: '鴨嘴火獸'},
-                    {id: 136, name: 'flareon', nameCH: '火伊布'},
-                    {id: 146, name: 'moltres', nameCH: '火焰鳥'},
-                    {id: 155, name: 'cyndaquil', nameCH: '火球鼠'},
-                    {id: 156, name: 'quilava', nameCH: '火岩鼠'},
-                    {id: 157, name: 'typhlosion', nameCH: '火爆獸'},
-                    {id: 218, name: 'slugma', nameCH: '熔岩蟲'},
-                    {id: 219, name: 'magcargo', nameCH: '熔岩蝸牛'},
-                    {id: 240, name: 'magby', nameCH: '鴨嘴寶寶'},
-                    {id: 244, name: 'entei', nameCH: '炎帝'},
-                    {id: 250, name: 'ho-oh', nameCH: '鳳王'}
+                    {id: 4, name: 'charmander', nameCH: '小火龍', nameEN: 'Charmander'},
+                    {id: 5, name: 'charmeleon', nameCH: '火恐龍', nameEN: 'Charmeleon'},
+                    {id: 6, name: 'charizard', nameCH: '噴火龍', nameEN: 'Charizard'},
+                    {id: 37, name: 'vulpix', nameCH: '六尾', nameEN: 'Vulpix'},
+                    {id: 38, name: 'ninetales', nameCH: '九尾', nameEN: 'Ninetales'},
+                    {id: 58, name: 'growlithe', nameCH: '卡蒂狗', nameEN: 'Growlithe'},
+                    {id: 59, name: 'arcanine', nameCH: '風速狗', nameEN: 'Arcanine'},
+                    {id: 77, name: 'ponyta', nameCH: '小火馬', nameEN: 'Ponyta'},
+                    {id: 78, name: 'rapidash', nameCH: '烈焰馬', nameEN: 'Rapidash'},
+                    {id: 126, name: 'magmar', nameCH: '鴨嘴火獸', nameEN: 'Magmar'},
+                    {id: 136, name: 'flareon', nameCH: '火伊布', nameEN: 'Flareon'},
+                    {id: 146, name: 'moltres', nameCH: '火焰鳥', nameEN: 'Moltres'},
+                    {id: 155, name: 'cyndaquil', nameCH: '火球鼠', nameEN: 'Cyndaquil'},
+                    {id: 156, name: 'quilava', nameCH: '火岩鼠', nameEN: 'Quilava'},
+                    {id: 157, name: 'typhlosion', nameCH: '火爆獸', nameEN: 'Typhlosion'},
+                    {id: 218, name: 'slugma', nameCH: '熔岩蟲', nameEN: 'Slugma'},
+                    {id: 219, name: 'magcargo', nameCH: '熔岩蝸牛', nameEN: 'Magcargo'},
+                    {id: 240, name: 'magby', nameCH: '鴨嘴寶寶', nameEN: 'Magby'},
+                    {id: 244, name: 'entei', nameCH: '炎帝', nameEN: 'Entei'},
+                    {id: 250, name: 'ho-oh', nameCH: '鳳王', nameEN: 'Ho-Oh'}
                 ]
             },
             water: {
                 name: '水系', 
                 color: '#74b9ff',
                 pokemon: [
-                    {id: 7, name: 'squirtle', nameCH: '傑尼龜'},
-                    {id: 8, name: 'wartortle', nameCH: '卡咪龜'},
-                    {id: 9, name: 'blastoise', nameCH: '水箭龜'},
-                    {id: 54, name: 'psyduck', nameCH: '可達鴨'},
-                    {id: 55, name: 'golduck', nameCH: '哥達鴨'},
-                    {id: 72, name: 'tentacool', nameCH: '瑪瑙水母'},
-                    {id: 73, name: 'tentacruel', nameCH: '毒刺水母'},
-                    {id: 79, name: 'slowpoke', nameCH: '呆呆獸'},
-                    {id: 80, name: 'slowbro', nameCH: '呆殼獸'},
-                    {id: 90, name: 'shellder', nameCH: '大舌貝'},
-                    {id: 91, name: 'cloyster', nameCH: '刺甲貝'},
-                    {id: 98, name: 'krabby', nameCH: '大鉗蟹'},
-                    {id: 99, name: 'kingler', nameCH: '巨鉗蟹'},
-                    {id: 116, name: 'horsea', nameCH: '墨海馬'},
-                    {id: 117, name: 'seadra', nameCH: '海刺龍'},
-                    {id: 118, name: 'goldeen', nameCH: '角金魚'},
-                    {id: 119, name: 'seaking', nameCH: '金魚王'},
-                    {id: 120, name: 'staryu', nameCH: '海星星'},
-                    {id: 121, name: 'starmie', nameCH: '寶石海星'},
-                    {id: 129, name: 'magikarp', nameCH: '鯉魚王'}
+                    {id: 7, name: 'squirtle', nameCH: '傑尼龜', nameEN: 'Squirtle'},
+                    {id: 8, name: 'wartortle', nameCH: '卡咪龜', nameEN: 'Wartortle'},
+                    {id: 9, name: 'blastoise', nameCH: '水箭龜', nameEN: 'Blastoise'},
+                    {id: 54, name: 'psyduck', nameCH: '可達鴨', nameEN: 'Psyduck'},
+                    {id: 55, name: 'golduck', nameCH: '哥達鴨', nameEN: 'Golduck'},
+                    {id: 72, name: 'tentacool', nameCH: '瑪瑙水母', nameEN: 'Tentacool'},
+                    {id: 73, name: 'tentacruel', nameCH: '毒刺水母', nameEN: 'Tentacruel'},
+                    {id: 79, name: 'slowpoke', nameCH: '呆呆獸', nameEN: 'Slowpoke'},
+                    {id: 80, name: 'slowbro', nameCH: '呆殼獸', nameEN: 'Slowbro'},
+                    {id: 90, name: 'shellder', nameCH: '大舌貝', nameEN: 'Shellder'},
+                    {id: 91, name: 'cloyster', nameCH: '刺甲貝', nameEN: 'Cloyster'},
+                    {id: 98, name: 'krabby', nameCH: '大鉗蟹', nameEN: 'Krabby'},
+                    {id: 99, name: 'kingler', nameCH: '巨鉗蟹', nameEN: 'Kingler'},
+                    {id: 116, name: 'horsea', nameCH: '墨海馬', nameEN: 'Horsea'},
+                    {id: 117, name: 'seadra', nameCH: '海刺龍', nameEN: 'Seadra'},
+                    {id: 118, name: 'goldeen', nameCH: '角金魚', nameEN: 'Goldeen'},
+                    {id: 119, name: 'seaking', nameCH: '金魚王', nameEN: 'Seaking'},
+                    {id: 120, name: 'staryu', nameCH: '海星星', nameEN: 'Staryu'},
+                    {id: 121, name: 'starmie', nameCH: '寶石海星', nameEN: 'Starmie'},
+                    {id: 129, name: 'magikarp', nameCH: '鯉魚王', nameEN: 'Magikarp'}
                 ]
             },
             grass: {
                 name: '草系',
                 color: '#55a3ff', 
                 pokemon: [
-                    {id: 1, name: 'bulbasaur', nameCH: '妙蛙種子'},
-                    {id: 2, name: 'ivysaur', nameCH: '妙蛙草'},
-                    {id: 3, name: 'venusaur', nameCH: '妙蛙花'},
-                    {id: 43, name: 'oddish', nameCH: '走路草'},
-                    {id: 44, name: 'gloom', nameCH: '臭臭花'},
-                    {id: 45, name: 'vileplume', nameCH: '霸王花'},
-                    {id: 46, name: 'paras', nameCH: '派拉斯'},
-                    {id: 47, name: 'parasect', nameCH: '派拉斯特'},
-                    {id: 69, name: 'bellsprout', nameCH: '喇叭芽'},
-                    {id: 70, name: 'weepinbell', nameCH: '口呆花'},
-                    {id: 71, name: 'victreebel', nameCH: '大食花'},
-                    {id: 102, name: 'exeggcute', nameCH: '蛋蛋'},
-                    {id: 103, name: 'exeggutor', nameCH: '椰蛋樹'},
-                    {id: 114, name: 'tangela', nameCH: '蔓藤怪'},
-                    {id: 152, name: 'chikorita', nameCH: '菊草葉'},
-                    {id: 153, name: 'bayleef', nameCH: '月桂葉'},
-                    {id: 154, name: 'meganium', nameCH: '大竺葵'},
-                    {id: 182, name: 'bellossom', nameCH: '美麗花'},
-                    {id: 187, name: 'hoppip', nameCH: '毽子草'},
-                    {id: 191, name: 'sunkern', nameCH: '向日種子'}
+                    {id: 1, name: 'bulbasaur', nameCH: '妙蛙種子', nameEN: 'Bulbasaur'},
+                    {id: 2, name: 'ivysaur', nameCH: '妙蛙草', nameEN: 'Ivysaur'},
+                    {id: 3, name: 'venusaur', nameCH: '妙蛙花', nameEN: 'Venusaur'},
+                    {id: 43, name: 'oddish', nameCH: '走路草', nameEN: 'Oddish'},
+                    {id: 44, name: 'gloom', nameCH: '臭臭花', nameEN: 'Gloom'},
+                    {id: 45, name: 'vileplume', nameCH: '霸王花', nameEN: 'Vileplume'},
+                    {id: 46, name: 'paras', nameCH: '派拉斯', nameEN: 'Paras'},
+                    {id: 47, name: 'parasect', nameCH: '派拉斯特', nameEN: 'Parasect'},
+                    {id: 69, name: 'bellsprout', nameCH: '喇叭芽', nameEN: 'Bellsprout'},
+                    {id: 70, name: 'weepinbell', nameCH: '口呆花', nameEN: 'Weepinbell'},
+                    {id: 71, name: 'victreebel', nameCH: '大食花', nameEN: 'Victreebel'},
+                    {id: 102, name: 'exeggcute', nameCH: '蛋蛋', nameEN: 'Exeggcute'},
+                    {id: 103, name: 'exeggutor', nameCH: '椰蛋樹', nameEN: 'Exeggutor'},
+                    {id: 114, name: 'tangela', nameCH: '蔓藤怪', nameEN: 'Tangela'},
+                    {id: 152, name: 'chikorita', nameCH: '菊草葉', nameEN: 'Chikorita'},
+                    {id: 153, name: 'bayleef', nameCH: '月桂葉', nameEN: 'Bayleef'},
+                    {id: 154, name: 'meganium', nameCH: '大竺葵', nameEN: 'Meganium'},
+                    {id: 182, name: 'bellossom', nameCH: '美麗花', nameEN: 'Bellossom'},
+                    {id: 187, name: 'hoppip', nameCH: '毽子草', nameEN: 'Hoppip'},
+                    {id: 191, name: 'sunkern', nameCH: '向日種子', nameEN: 'Sunkern'}
                 ]
             },
             electric: {
                 name: '電系',
                 color: '#feca57',
                 pokemon: [
-                    {id: 25, name: 'pikachu', nameCH: '皮卡丘'},
-                    {id: 26, name: 'raichu', nameCH: '雷丘'},
-                    {id: 81, name: 'magnemite', nameCH: '小磁怪'},
-                    {id: 82, name: 'magneton', nameCH: '三合一磁怪'},
-                    {id: 100, name: 'voltorb', nameCH: '雷電球'},
-                    {id: 101, name: 'electrode', nameCH: '頑皮雷彈'},
-                    {id: 125, name: 'electabuzz', nameCH: '電擊獸'},
-                    {id: 135, name: 'jolteon', nameCH: '雷伊布'},
-                    {id: 145, name: 'zapdos', nameCH: '閃電鳥'},
-                    {id: 172, name: 'pichu', nameCH: '皮丘'},
-                    {id: 179, name: 'mareep', nameCH: '咩利羊'},
-                    {id: 180, name: 'flaaffy', nameCH: '茸茸羊'},
-                    {id: 181, name: 'ampharos', nameCH: '電龍'},
-                    {id: 239, name: 'elekid', nameCH: '電擊怪'},
-                    {id: 243, name: 'raikou', nameCH: '雷公'},
-                    {id: 309, name: 'electrike', nameCH: '落雷獸'},
-                    {id: 310, name: 'manectric', nameCH: '雷電獸'},
-                    {id: 311, name: 'plusle', nameCH: '正電拍拍'},
-                    {id: 312, name: 'minun', nameCH: '負電拍拍'},
-                    {id: 466, name: 'electivire', nameCH: '電擊魔獸'}
+                    {id: 25, name: 'pikachu', nameCH: '皮卡丘', nameEN: 'Pikachu'},
+                    {id: 26, name: 'raichu', nameCH: '雷丘', nameEN: 'Raichu'},
+                    {id: 81, name: 'magnemite', nameCH: '小磁怪', nameEN: 'Magnemite'},
+                    {id: 82, name: 'magneton', nameCH: '三合一磁怪', nameEN: 'Magneton'},
+                    {id: 100, name: 'voltorb', nameCH: '雷電球', nameEN: 'Voltorb'},
+                    {id: 101, name: 'electrode', nameCH: '頑皮雷彈', nameEN: 'Electrode'},
+                    {id: 125, name: 'electabuzz', nameCH: '電擊獸', nameEN: 'Electabuzz'},
+                    {id: 135, name: 'jolteon', nameCH: '雷伊布', nameEN: 'Jolteon'},
+                    {id: 145, name: 'zapdos', nameCH: '閃電鳥', nameEN: 'Zapdos'},
+                    {id: 172, name: 'pichu', nameCH: '皮丘', nameEN: 'Pichu'},
+                    {id: 179, name: 'mareep', nameCH: '咩利羊', nameEN: 'Mareep'},
+                    {id: 180, name: 'flaaffy', nameCH: '茸茸羊', nameEN: 'Flaaffy'},
+                    {id: 181, name: 'ampharos', nameCH: '電龍', nameEN: 'Ampharos'},
+                    {id: 239, name: 'elekid', nameCH: '電擊怪', nameEN: 'Elekid'},
+                    {id: 243, name: 'raikou', nameCH: '雷公', nameEN: 'Raikou'},
+                    {id: 309, name: 'electrike', nameCH: '落雷獸', nameEN: 'Electrike'},
+                    {id: 310, name: 'manectric', nameCH: '雷電獸', nameEN: 'Manectric'},
+                    {id: 311, name: 'plusle', nameCH: '正電拍拍', nameEN: 'Plusle'},
+                    {id: 312, name: 'minun', nameCH: '負電拍拍', nameEN: 'Minun'},
+                    {id: 466, name: 'electivire', nameCH: '電擊魔獸', nameEN: 'Electivire'}
                 ]
             },
             legendary: {
                 name: '神話種',
                 color: '#9b59b6',
                 pokemon: [
-                    {id: 144, name: 'articuno', nameCH: '急凍鳥'},
-                    {id: 145, name: 'zapdos', nameCH: '閃電鳥'},
-                    {id: 146, name: 'moltres', nameCH: '火焰鳥'},
-                    {id: 150, name: 'mewtwo', nameCH: '超夢'},
-                    {id: 151, name: 'mew', nameCH: '夢幻'},
-                    {id: 243, name: 'raikou', nameCH: '雷公'},
-                    {id: 244, name: 'entei', nameCH: '炎帝'},
-                    {id: 245, name: 'suicune', nameCH: '水君'},
-                    {id: 249, name: 'lugia', nameCH: '洛奇亞'},
-                    {id: 250, name: 'ho-oh', nameCH: '鳳王'},
-                    {id: 251, name: 'celebi', nameCH: '時拉比'},
-                    {id: 380, name: 'latias', nameCH: '拉帝亞斯'},
-                    {id: 381, name: 'latios', nameCH: '拉帝歐斯'},
-                    {id: 382, name: 'kyogre', nameCH: '蓋歐卡'},
-                    {id: 383, name: 'groudon', nameCH: '固拉多'},
-                    {id: 384, name: 'rayquaza', nameCH: '烈空坐'},
-                    {id: 385, name: 'jirachi', nameCH: '基拉祈'},
-                    {id: 386, name: 'deoxys', nameCH: '代歐奇希斯'},
-                    {id: 483, name: 'dialga', nameCH: '帝牙盧卡'},
-                    {id: 484, name: 'palkia', nameCH: '帕路奇亞'}
+                    {id: 144, name: 'articuno', nameCH: '急凍鳥', nameEN: 'Articuno'},
+                    {id: 145, name: 'zapdos', nameCH: '閃電鳥', nameEN: 'Zapdos'},
+                    {id: 146, name: 'moltres', nameCH: '火焰鳥', nameEN: 'Moltres'},
+                    {id: 150, name: 'mewtwo', nameCH: '超夢', nameEN: 'Mewtwo'},
+                    {id: 151, name: 'mew', nameCH: '夢幻', nameEN: 'Mew'},
+                    {id: 243, name: 'raikou', nameCH: '雷公', nameEN: 'Raikou'},
+                    {id: 244, name: 'entei', nameCH: '炎帝', nameEN: 'Entei'},
+                    {id: 245, name: 'suicune', nameCH: '水君', nameEN: 'Suicune'},
+                    {id: 249, name: 'lugia', nameCH: '洛奇亞', nameEN: 'Lugia'},
+                    {id: 250, name: 'ho-oh', nameCH: '鳳王', nameEN: 'Ho-Oh'},
+                    {id: 251, name: 'celebi', nameCH: '時拉比', nameEN: 'Celebi'},
+                    {id: 380, name: 'latias', nameCH: '拉帝亞斯', nameEN: 'Latias'},
+                    {id: 381, name: 'latios', nameCH: '拉帝歐斯', nameEN: 'Latios'},
+                    {id: 382, name: 'kyogre', nameCH: '蓋歐卡', nameEN: 'Kyogre'},
+                    {id: 383, name: 'groudon', nameCH: '固拉多', nameEN: 'Groudon'},
+                    {id: 384, name: 'rayquaza', nameCH: '烈空坐', nameEN: 'Rayquaza'},
+                    {id: 385, name: 'jirachi', nameCH: '基拉祈', nameEN: 'Jirachi'},
+                    {id: 386, name: 'deoxys', nameCH: '代歐奇希斯', nameEN: 'Deoxys'},
+                    {id: 483, name: 'dialga', nameCH: '帝牙盧卡', nameEN: 'Dialga'},
+                    {id: 484, name: 'palkia', nameCH: '帕路奇亞', nameEN: 'Palkia'}
                 ]
             }
         };
@@ -672,8 +745,56 @@
             }
         }
         
+        // 語言切換功能
+        function toggleLanguage() {
+            currentLanguage = currentLanguage === 'zh' ? 'en' : 'zh';
+            updateLanguage();
+            localStorage.setItem('gameLanguage', currentLanguage);
+        }
+        
+        function updateLanguage() {
+            // 更新按鈕文字
+            const langBtn = document.getElementById('langBtn');
+            langBtn.textContent = currentLanguage === 'zh' ? '🌐 EN' : '🌐 中文';
+            
+            // 更新所有帶有data-zh和data-en屬性的元素
+            document.querySelectorAll('[data-zh][data-en]').forEach(element => {
+                const text = currentLanguage === 'zh' ? element.getAttribute('data-zh') : element.getAttribute('data-en');
+                element.textContent = text;
+            });
+            
+            // 更新placeholder
+            document.querySelectorAll('[data-zh-placeholder][data-en-placeholder]').forEach(element => {
+                const placeholder = currentLanguage === 'zh' ? element.getAttribute('data-zh-placeholder') : element.getAttribute('data-en-placeholder');
+                element.placeholder = placeholder;
+            });
+            
+            // 重新渲染收集進度（更新類型名稱）
+            renderCollection();
+        }
+        
+        function getMessage(key, params = {}) {
+            let message = translations.messages[currentLanguage][key] || key;
+            // 替換參數
+            Object.keys(params).forEach(param => {
+                message = message.replace(`{${param}}`, params[param]);
+            });
+            return message;
+        }
+        
+        function getTypeName(typeKey) {
+            return translations.types[currentLanguage][typeKey] || typeKey;
+        }
+        
         // 初始化遊戲
         function initGame() {
+            // 載入語言設定
+            const savedLanguage = localStorage.getItem('gameLanguage');
+            if (savedLanguage) {
+                currentLanguage = savedLanguage;
+            }
+            updateLanguage();
+            
             initQuestionPool();
             generateQuestion();
             updateStats();
@@ -692,7 +813,7 @@
             if (questionPool.length === 0) {
                 initQuestionPool();
                 usedQuestions = [];
-                showMessage('🎉 恭喜！完成一輪99乘法表練習！開始新一輪！', 'correct');
+                showMessage(getMessage('roundComplete'), 'correct');
                 setTimeout(() => {
                     document.getElementById('message').style.display = 'none';
                 }, 3000);
@@ -716,17 +837,17 @@
             const userAnswer = parseInt(document.getElementById('answerInput').value);
             
             if (isNaN(userAnswer)) {
-                showMessage('請輸入數字！', 'incorrect');
+                showMessage(getMessage('inputNumber'), 'incorrect');
                 return;
             }
             
             if (userAnswer === currentQuestion.answer) {
                 stats.correct++;
-                showMessage('🎉 答對了！太棒了！', 'correct');
+                showMessage(getMessage('correct'), 'correct');
                 rewardPokemon();
                 setTimeout(generateQuestion, 2500);
             } else {
-                showMessage(`❌ 答錯了！正確答案是 ${currentQuestion.answer}`, 'incorrect');
+                showMessage(getMessage('incorrect') + ' ' + currentQuestion.answer, 'incorrect');
                 setTimeout(() => {
                     document.getElementById('message').style.display = 'none';
                     generateQuestion(); // 答錯後自動換下一題
@@ -787,8 +908,8 @@
                     const starNumber = collection[randomType].length / 5;
                     setTimeout(() => {
                         const starMessage = randomType === 'legendary' ? 
-                            `🌟 傳說！完成神話種第${starNumber}階段收集！獲得傳說之星！` : 
-                            `⭐ 恭喜！完成${typeData.name}第${starNumber}階段收集！獲得一顆星星！`;
+                            getMessage('legendaryStarEarned', {stage: starNumber}) : 
+                            getMessage('starEarned', {type: getTypeName(randomType), stage: starNumber});
                         showMessage(starMessage, 'correct');
                     }, 1500);
                 }
@@ -805,7 +926,7 @@
             
             // 如果是神話種，先顯示特殊訊息
             if (isLegendary) {
-                showMessage('🌟 傳說降臨！獲得神話種寶可夢！', 'correct');
+                showMessage(getMessage('legendary'), 'correct');
             }
             
             const legendaryClass = isLegendary ? 'legendary' : '';
@@ -826,12 +947,12 @@
                 <div class="pokemon-card ${legendaryClass}" id="newPokemon">
                     ${starsHtml}
                     <img src="${getPokemonImageURL(pokemon.id)}" 
-                         alt="${pokemon.nameCH}" 
+                         alt="${currentLanguage === 'zh' ? pokemon.nameCH : pokemon.nameEN}" 
                          class="pokemon-image" 
                          onerror="handleImageError(this, ${pokemon.id})">
-                    <div class="pokemon-name">${pokemon.nameCH}</div>
+                    <div class="pokemon-name">${currentLanguage === 'zh' ? pokemon.nameCH : pokemon.nameEN}</div>
                     <div class="pokemon-type" style="background-color: ${typeData.color}">
-                        ${isLegendary ? '🌟 ' : ''}${typeData.name}
+                        ${isLegendary ? '🌟 ' : ''}${getTypeName(type)}
                     </div>
                 </div>
             `;
@@ -876,10 +997,11 @@
                 const pokemonHtml = typeData.pokemon.map(pokemon => {
                     const isCollected = collected.some(c => c.id === pokemon.id);
                     const paddedId = String(pokemon.id).padStart(3, '0');
+                    const pokemonName = currentLanguage === 'zh' ? pokemon.nameCH : pokemon.nameEN;
                     return `<img src="https://raw.githubusercontent.com/HybridShivam/Pokemon/master/assets/images/${paddedId}.png" 
-                                 alt="${pokemon.nameCH}" 
+                                 alt="${pokemonName}" 
                                  class="pokemon-mini ${isCollected ? 'collected' : ''}" 
-                                 title="${pokemon.nameCH}"
+                                 title="${pokemonName}"
                                  onerror="handleImageError(this, ${pokemon.id})">`;
                 }).join('');
                 
@@ -887,12 +1009,13 @@
                 let statusText = '';
                 if (completedStages > 0) {
                     const starIcon = isLegendary ? '🌟' : '⭐';
-                    statusText = `<div style="margin-top: 8px; font-size: 1rem; font-weight: bold;">${starIcon} 已獲得 ${completedStages} 顆星星</div>`;
+                    const messageKey = isLegendary ? 'legendaryStarsEarned' : 'starsEarned';
+                    statusText = `<div style="margin-top: 8px; font-size: 1rem; font-weight: bold;">${getMessage(messageKey, {count: completedStages})}</div>`;
                 }
                 
                 div.innerHTML = `
                     <div class="type-header" style="color: ${isLegendary ? 'white' : typeData.color}">
-                        ${typeData.name} (${collected.length}/${(completedStages + 1) * 5})
+                        ${getTypeName(typeKey)} (${collected.length}/${(completedStages + 1) * 5})
                     </div>
                     <div class="pokemon-grid">${pokemonHtml}</div>
                     ${statusText}
