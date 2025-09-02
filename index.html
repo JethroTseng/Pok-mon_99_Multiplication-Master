@@ -461,7 +461,7 @@
         </div>
         
         <div class="collection">
-            <h3 class="collection-title">📚 寶可夢收集冊 - 每系列收集5隻獲得星星 | 🌟 神話種稀有出現</h3>
+            <h3 class="collection-title">📚 寶可夢收集冊 - 每收集5隻獲得1顆星星，可持續收集獲得更多星星！ | 🌟 神話種稀有出現</h3>
             <div class="type-collections" id="typeCollections"></div>
             <div class="stars" id="starsDisplay"></div>
         </div>
@@ -781,13 +781,14 @@
                 
                 showPokemon(pokemon, randomType);
                 
-                // 檢查是否完成該屬性收集（收集到5隻即可）
-                if (collection[randomType].length === 5) {
+                // 檢查是否完成該屬性收集（每收集5隻獲得1顆星星）
+                if (collection[randomType].length % 5 === 0) {
                     stats.stars++;
+                    const starNumber = collection[randomType].length / 5;
                     setTimeout(() => {
                         const starMessage = randomType === 'legendary' ? 
-                            `🌟 傳說！完成神話種收集！獲得傳說之星！` : 
-                            `⭐ 恭喜！完成${typeData.name}收集！獲得一顆星星！`;
+                            `🌟 傳說！完成神話種第${starNumber}階段收集！獲得傳說之星！` : 
+                            `⭐ 恭喜！完成${typeData.name}第${starNumber}階段收集！獲得一顆星星！`;
                         showMessage(starMessage, 'correct');
                     }, 1500);
                 }
@@ -863,6 +864,8 @@
             Object.keys(pokemonTypes).forEach(typeKey => {
                 const typeData = pokemonTypes[typeKey];
                 const collected = collection[typeKey];
+                const completedStages = Math.floor(collected.length / 5);
+                const currentProgress = collected.length % 5;
                 const isComplete = collected.length >= 5;
                 const isLegendary = typeKey === 'legendary';
                 
@@ -880,16 +883,19 @@
                                  onerror="handleImageError(this, ${pokemon.id})">`;
                 }).join('');
                 
-                const completeText = isComplete ? 
-                    (isLegendary ? '<div style="margin-top: 8px; font-size: 1rem; font-weight: bold;">🌟 傳說完成！</div>' : 
-                                  '<div style="margin-top: 8px; font-size: 1rem; font-weight: bold;">⭐ 完成！</div>') : '';
+                // 顯示階段進度和獲得的星星
+                let statusText = '';
+                if (completedStages > 0) {
+                    const starIcon = isLegendary ? '🌟' : '⭐';
+                    statusText = `<div style="margin-top: 8px; font-size: 1rem; font-weight: bold;">${starIcon} 已獲得 ${completedStages} 顆星星</div>`;
+                }
                 
                 div.innerHTML = `
                     <div class="type-header" style="color: ${isLegendary ? 'white' : typeData.color}">
-                        ${typeData.name} (${collected.length}/5)
+                        ${typeData.name} (${currentProgress === 0 && completedStages > 0 ? completedStages * 5 : collected.length}/${(completedStages + 1) * 5})
                     </div>
                     <div class="pokemon-grid">${pokemonHtml}</div>
-                    ${completeText}
+                    ${statusText}
                 `;
                 
                 container.appendChild(div);
