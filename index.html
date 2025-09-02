@@ -892,7 +892,7 @@
                 
                 div.innerHTML = `
                     <div class="type-header" style="color: ${isLegendary ? 'white' : typeData.color}">
-                        ${typeData.name} (${currentProgress === 0 && completedStages > 0 ? completedStages * 5 : collected.length}/${(completedStages + 1) * 5})
+                        ${typeData.name} (${collected.length}/${(completedStages + 1) * 5})
                     </div>
                     <div class="pokemon-grid">${pokemonHtml}</div>
                     ${statusText}
